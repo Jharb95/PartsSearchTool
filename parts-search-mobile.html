@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0F1114">
+<title>Parts Search Mobile</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0F1114;--card:#181B20;--input:#1E2228;
+    --border:#2A2E35;--accent:#22C55E;--accent2:#16A34A;
+    --text:#E8E8E8;--text2:#8B8F96;--muted:#565A62;
+    --font:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,sans-serif;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);
+    -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+  }
+
+  /* ─── Header ─── */
+  .header{
+    padding:16px;display:flex;align-items:center;gap:12px;
+    border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:var(--bg);z-index:10;
+  }
+  .logo{
+    width:34px;height:34px;border-radius:8px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;font-weight:800;color:#000;
+  }
+  .header-title{font-weight:700;font-size:15px;letter-spacing:-0.02em}
+  .header-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+  .main{padding:12px 14px;padding-bottom:80px}
+
+  /* ─── Drop Zone ─── */
+  .dropzone{
+    border:2px dashed var(--border);border-radius:14px;
+    padding:60px 20px;text-align:center;cursor:pointer;transition:all .2s;
+  }
+  .dropzone.over{border-color:var(--accent);background:rgba(34,197,94,.03)}
+  .dropzone-icon{font-size:40px;margin-bottom:14px;opacity:.6}
+  .dropzone-label{font-size:16px;font-weight:600;margin-bottom:8px}
+  .dropzone-hint{font-size:13px;color:var(--muted)}
+
+  /* ─── Tabs ─── */
+  .tabs-scroll{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    margin:0 -14px 10px;padding:0 14px;
+    scrollbar-width:none;
+  }
+  .tabs-scroll::-webkit-scrollbar{display:none}
+  .tabs{display:flex;gap:6px;width:max-content}
+  .tab{
+    padding:9px 14px;font-size:12px;font-weight:600;font-family:var(--font);
+    border:1px solid var(--border);border-radius:8px;
+    background:transparent;color:var(--text2);cursor:pointer;
+    transition:all .15s;white-space:nowrap;
+    -webkit-appearance:none;
+  }
+  .tab.active{border-color:var(--accent);background:rgba(34,197,94,.12);color:var(--accent)}
+  .tab-reset{
+    padding:9px 12px;font-size:11px;font-family:var(--font);
+    border:1px solid var(--border);border-radius:8px;
+    background:transparent;color:var(--muted);cursor:pointer;
+    white-space:nowrap;-webkit-appearance:none;
+  }
+
+  /* ─── Search Bar ─── */
+  .search-bar{
+    display:flex;align-items:center;background:var(--input);
+    border:1px solid var(--border);border-radius:10px;
+    padding:0 14px;gap:10px;margin-bottom:14px;
+    position:sticky;top:68px;z-index:9;
+  }
+  .search-icon{color:var(--muted);font-size:18px;flex-shrink:0}
+  .search-input{
+    flex:1;padding:14px 0;font-size:16px;font-family:var(--font);
+    background:transparent;border:none;outline:none;color:var(--text);
+    -webkit-appearance:none;
+  }
+  .search-input::placeholder{color:var(--muted)}
+  .clear-btn{
+    background:transparent;border:none;color:var(--muted);
+    font-size:20px;cursor:pointer;padding:8px;line-height:1;
+    -webkit-appearance:none;
+  }
+
+  /* ─── Results ─── */
+  .results-info{
+    font-size:12px;color:var(--muted);margin-bottom:8px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+
+  /* ─── Card-based results for mobile ─── */
+  .card{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:10px;padding:14px;margin-bottom:8px;
+    cursor:pointer;transition:all .15s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .card.focused{border-color:var(--accent);background:rgba(34,197,94,.04)}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .card-id{font-size:14px;font-weight:700;color:var(--accent);word-break:break-word}
+  .card-qty{font-size:13px;color:var(--text2);white-space:nowrap;flex-shrink:0}
+  .card-mfr{font-size:11px;color:var(--muted);margin-bottom:6px}
+  .card-desc{font-size:13px;color:var(--text);line-height:1.4;margin-bottom:6px}
+  .card-loc{font-size:11px;color:var(--text2)}
+  .card-loc span{color:var(--muted);margin-right:4px}
+
+  /* ─── Detail Panel ─── */
+  .detail{
+    background:var(--card);border:1px solid var(--accent);
+    border-radius:10px;padding:14px;margin-top:4px;margin-bottom:8px;
+  }
+  .detail-title{
+    font-size:11px;font-weight:700;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;
+  }
+  .detail-grid{display:grid;grid-template-columns:1fr;gap:6px}
+  .detail-item{padding:6px 0;border-bottom:1px solid var(--border)}
+  .detail-item:last-child{border-bottom:none}
+  .detail-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .detail-value{font-size:14px;color:var(--text);word-break:break-word;margin-top:2px}
+
+  /* ─── Empty State ─── */
+  .empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:14px}
+  .empty-icon{font-size:32px;margin-bottom:10px;opacity:.4}
+  .empty-hint{margin-top:12px;font-size:12px;line-height:1.8;opacity:.7}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">⚙</div>
+  <div>
+    <div class="header-title">PARTS SEARCH</div>
+    <div class="header-sub" id="subtitle">Load your inventory to begin</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="dropzone" id="dropzone" style="display:block">
+    <input type="file" id="fileInput" accept=".csv,.xls,.xlsx" style="display:none">
+    <div class="dropzone-icon">📂</div>
+    <div class="dropzone-label">Tap to load your file</div>
+    <div class="dropzone-hint">Supports .csv, .xls, and .xlsx</div>
+  </div>
+
+  <div id="searchUI" style="display:none">
+    <div class="tabs-scroll"><div class="tabs" id="tabs"></div></div>
+    <div class="search-bar">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Type keywords…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <button class="clear-btn" id="clearBtn" style="display:none">✕</button>
+    </div>
+    <div id="resultsArea"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  let allRows=[],allHeaders=[],colMap=null,mode='all',results=null,focusedIdx=null,searchTimer=null;
+
+  const dropzone=document.getElementById('dropzone');
+  const fileInput=document.getElementById('fileInput');
+  const searchUI=document.getElementById('searchUI');
+  const subtitle=document.getElementById('subtitle');
+  const tabs=document.getElementById('tabs');
+  const input=document.getElementById('searchInput');
+  const clearBtn=document.getElementById('clearBtn');
+  const area=document.getElementById('resultsArea');
+
+  function parseCSV(text){
+    const lines=[];let cur='',inQ=false;
+    for(let i=0;i<text.length;i++){
+      const c=text[i];
+      if(c==='"'){if(inQ&&text[i+1]==='"'){cur+='"';i++}else inQ=!inQ}
+      else if(c==='\n'&&!inQ){if(cur.trim()||lines.length)lines.push(cur);cur=''}
+      else if(c==='\r'&&!inQ){}
+      else cur+=c;
+    }
+    if(cur.trim())lines.push(cur);
+    if(!lines.length)return{headers:[],rows:[]};
+    function split(line){
+      const f=[];let s='',q=false;
+      for(let i=0;i<line.length;i++){
+        const c=line[i];
+        if(c==='"'){if(q&&line[i+1]==='"'){s+='"';i++}else q=!q}
+        else if(c===','&&!q){f.push(s);s=''}
+        else s+=c;
+      }f.push(s);return f;
+    }
+    const headers=split(lines[0]).map(h=>h.trim());
+    const rows=[];
+    for(let i=1;i<lines.length;i++){
+      const v=split(lines[i]),obj={};
+      headers.forEach((h,j)=>{obj[h]=(v[j]||'').trim()});
+      rows.push(obj);
+    }
+    return{headers,rows};
+  }
+
+  function parseExcel(data){
+    const wb=XLSX.read(data,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const json=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!json.length)return{headers:[],rows:[]};
+    const headers=Object.keys(json[0]);
+    const rows=json.map(r=>{const obj={};headers.forEach(h=>{obj[h]=String(r[h]||'').trim()});return obj});
+    return{headers,rows};
+  }
+
+  function isExcel(name){const ext=name.toLowerCase().split('.').pop();return ext==='xls'||ext==='xlsx'}
+
+  function detectColumns(headers){
+    function find(cands){
+      for(const c of cands){const m=headers.find(h=>h.toLowerCase().replace(/[^a-z0-9]/g,'')===c.toLowerCase().replace(/[^a-z0-9]/g,''));if(m)return m}
+      for(const c of cands){const m=headers.find(h=>h.toLowerCase().includes(c.toLowerCase()));if(m)return m}
+      return null;
+    }
+    return{
+      description:find(['Description','Desc','PartDescription','ItemDescription'])||headers[0],
+      inventory_id:find(['InventoryID','Inventory ID#','InventoryID#','PartNumber','Part#','ID'])||null,
+      manufacturer_part:find(['Manufacturer Part #','Manufacturer Part#','MfrPart#','MfrPartNumber','ManufacturerPart','Mfr Part','MPN'])||null,
+      location:find(['Location','Loc','BinLocation','StorageLocation'])||null,
+      stock_area:find(['Stock Area','StockArea','Stock Description','StockDescription'])||null,
+      stock:find(['StockQuantities','Stock Quantities','Qty','Quantity','QtyOnHand','Stock'])||null,
+    };
+  }
+
+  // ─── IndexedDB Cache ───
+  const DB_NAME='PartsSearchMobileCache';const DB_STORE='data';
+  function openDB(){
+    return new Promise((res,rej)=>{
+      const req=indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded=()=>req.result.createObjectStore(DB_STORE);
+      req.onsuccess=()=>res(req.result);
+      req.onerror=()=>rej(req.error);
+    });
+  }
+  async function cacheSet(key,val){try{const db=await openDB();const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(val,key);await new Promise(r=>{tx.oncomplete=r})}catch(e){}}
+  async function cacheGet(key){try{const db=await openDB();const tx=db.transaction(DB_STORE,'readonly');const req=tx.objectStore(DB_STORE).get(key);return new Promise(r=>{req.onsuccess=()=>r(req.result);req.onerror=()=>r(null)})}catch(e){return null}}
+  async function cacheClear(){try{const db=await openDB();const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).clear()}catch(e){}}
+
+  function loadParsed(r,fileName,skipCache){
+    allHeaders=r.headers;allRows=r.rows;
+    colMap=detectColumns(allHeaders);
+    results=null;focusedIdx=null;
+    subtitle.textContent=allRows.length.toLocaleString()+' parts from '+fileName;
+    dropzone.style.display='none';searchUI.style.display='block';
+    buildTabs();updatePlaceholder();renderResults();
+    input.value='';clearBtn.style.display='none';
+    setTimeout(()=>input.focus(),200);
+    if(!skipCache)cacheSet('parts',{headers:r.headers,rows:r.rows,fileName:fileName});
+  }
+
+  (async function(){
+    const cached=await cacheGet('parts');
+    if(cached&&cached.rows&&cached.rows.length){
+      loadParsed({headers:cached.headers,rows:cached.rows},cached.fileName+' (cached)',true);
+    }
+  })();
+
+  function handleFile(file){
+    if(!file)return;
+    const reader=new FileReader();
+    if(isExcel(file.name)){
+      reader.onload=function(e){loadParsed(parseExcel(new Uint8Array(e.target.result)),file.name)};
+      reader.readAsArrayBuffer(file);
+    }else{
+      reader.onload=function(e){loadParsed(parseCSV(e.target.result),file.name)};
+      reader.readAsText(file);
+    }
+  }
+
+  dropzone.addEventListener('click',()=>fileInput.click());
+  fileInput.addEventListener('change',e=>handleFile(e.target.files[0]));
+  dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.classList.add('over')});
+  dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('over'));
+  dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.classList.remove('over');handleFile(e.dataTransfer.files[0])});
+
+  const MODES=[
+    {key:'all',label:'All Fields'},
+    {key:'inventory_id',label:'Inventory ID'},
+    {key:'manufacturer_part',label:'Mfr Part #'},
+    {key:'description',label:'Description'},
+    {key:'location',label:'Location'},
+    {key:'stock_area',label:'Stock Area'}
+  ];
+
+  function buildTabs(){
+    tabs.innerHTML='';
+    MODES.forEach(m=>{
+      const field=m.key==='all'?true:colMap[m.key];
+      if(!field)return;
+      const btn=document.createElement('button');
+      btn.className='tab'+(mode===m.key?' active':'');
+      btn.textContent=m.label;
+      btn.onclick=()=>{mode=m.key;buildTabs();updatePlaceholder();doSearch();input.focus()};
+      tabs.appendChild(btn);
+    });
+    const reset=document.createElement('button');
+    reset.className='tab-reset';
+    reset.textContent='↻ New File';
+    reset.onclick=()=>{
+      allRows=[];allHeaders=[];colMap=null;results=null;focusedIdx=null;
+      subtitle.textContent='Load your inventory to begin';
+      searchUI.style.display='none';dropzone.style.display='block';
+      area.innerHTML='';input.value='';cacheClear();
+    };
+    tabs.appendChild(reset);
+  }
+
+  function updatePlaceholder(){
+    const ph={all:'Search all fields…',inventory_id:'Search by ID…',manufacturer_part:'Search by mfr part #…',description:'Search description…',location:'Search location…',stock_area:'Search stock area…'};
+    input.placeholder=ph[mode]||'Search…';
+  }
+
+  function doSearch(){
+    const q=input.value.trim();
+    if(!q||!colMap){results=null;focusedIdx=null;renderResults();return}
+    const kws=q.toLowerCase().split(/\s+/);
+    if(mode==='all'){
+      const fields=[colMap.inventory_id,colMap.manufacturer_part,colMap.description,colMap.location,colMap.stock_area].filter(Boolean);
+      results=allRows.filter(row=>{
+        const combined=fields.map(f=>(row[f]||'')).join(' ').toLowerCase();
+        return kws.every(kw=>combined.includes(kw));
+      });
+    }else{
+      const fieldKey=colMap[mode];
+      if(!fieldKey){results=[];focusedIdx=null;renderResults();return}
+      results=allRows.filter(row=>{const text=(row[fieldKey]||'').toLowerCase();return kws.every(kw=>text.includes(kw))});
+    }
+    focusedIdx=null;renderResults();
+  }
+
+  input.addEventListener('input',()=>{
+    clearBtn.style.display=input.value?'block':'none';
+    clearTimeout(searchTimer);searchTimer=setTimeout(doSearch,300);
+  });
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearch();input.blur()}});
+  clearBtn.addEventListener('click',()=>{input.value='';clearBtn.style.display='none';results=null;focusedIdx=null;renderResults();input.focus()});
+
+  function renderResults(){
+    let html='';
+    if(results===null){
+      html=`<div class="empty"><div class="empty-icon">⚙</div>Start typing to search ${allRows.length.toLocaleString()} parts<div class="empty-hint">All keywords must match — order doesn't matter</div></div>`;
+      area.innerHTML=html;return;
+    }
+    const modeLabel=mode==='all'?'all fields':mode==='inventory_id'?'IDs':mode==='manufacturer_part'?'Mfr Part #s':mode==='description'?'descriptions':mode==='stock_area'?'stock areas':'locations';
+    html+=`<div class="results-info"><span>${results.length===0?'No matching parts found':results.length+' result'+(results.length!==1?'s':'')}</span>${results.length>0?'<span>'+modeLabel+'</span>':''}</div>`;
+
+    const show=results.slice(0,200);
+    show.forEach((row,i)=>{
+      const id=row[colMap.inventory_id]||'';
+      const mfr=row[colMap.manufacturer_part]||'';
+      const desc=row[colMap.description]||'';
+      const loc=row[colMap.location]||'';
+      const sa=row[colMap.stock_area]||'';
+      const qty=row[colMap.stock]||'';
+      const focused=focusedIdx===i;
+
+      html+=`<div class="card${focused?' focused':''}" data-idx="${i}">`;
+      html+=`<div class="card-top"><div class="card-id">${esc(id||'—')}</div>`;
+      if(qty)html+=`<div class="card-qty">Qty: ${esc(qty)}</div>`;
+      html+=`</div>`;
+      if(mfr)html+=`<div class="card-mfr">Mfr: ${esc(mfr)}</div>`;
+      if(desc)html+=`<div class="card-desc">${esc(desc)}</div>`;
+      const locs=[];
+      if(loc)locs.push('<span>Loc:</span> '+esc(loc));
+      if(sa)locs.push('<span>Area:</span> '+esc(sa));
+      if(locs.length)html+=`<div class="card-loc">${locs.join('  &nbsp;·&nbsp;  ')}</div>`;
+      html+=`</div>`;
+
+      if(focused){
+        html+=`<div class="detail"><div class="detail-title">Full Details</div><div class="detail-grid">`;
+        allHeaders.forEach(h=>{const v=row[h];if(!v)return;html+=`<div class="detail-item"><div class="detail-label">${esc(h)}</div><div class="detail-value">${esc(v)}</div></div>`});
+        html+=`</div></div>`;
+      }
+    });
+
+    if(results.length>200){
+      html+=`<div style="text-align:center;padding:16px;font-size:12px;color:var(--muted)">Showing 200 of ${results.length} — refine your search</div>`;
+    }
+
+    area.innerHTML=html;
+    area.querySelectorAll('.card').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const scrollPos=window.scrollY;
+        const idx=parseInt(el.dataset.idx);
+        focusedIdx=focusedIdx===idx?null:idx;
+        renderResults();
+        window.scrollTo(0,scrollPos);
+        if(focusedIdx!==null){
+          setTimeout(()=>{
+            const focused=area.querySelector('.card.focused');
+            if(focused)focused.scrollIntoView({behavior:'smooth',block:'nearest'});
+          },50);
+        }
+      });
+    });
+  }
+
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+})();
+</script>
+</body>
+</html>
